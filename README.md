@@ -8,6 +8,8 @@
 
 EtherScore is a protocol based on Ethereum enabling Dapps to better identify their reliable users by distributing them NFTs based on their previous actions. These NFTs can then be used as conditions to access specific smart contracts, airdrops, or even more DAO voting power and many other incentives. EtherScore uses data indexers The Graph Protocol and Covalent to execute all processes on-chain. As use cases we have already defined several badges based on Aave, Compound and Uniswap protocol history as it can be found directly into the blockchain. Those badges are a first step in order to facilitate those platforms to curate their valuable and notable users.
 
+Video presentation: https://www.youtube.com/watch?v=RqNBkbVOFa0
+
 ## Main features
 EtherScore comes with a badge factory allowing to:
 
