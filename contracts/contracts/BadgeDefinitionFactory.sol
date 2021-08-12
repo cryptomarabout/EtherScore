@@ -8,7 +8,7 @@ import "./BadgeFactory.sol";
  * @title BadgeDefinitionFactory
  * @author Geoffrey Garcia
  * @notice Contract to use to mint and to transfer BadgeDefinition that are ERC721 tokens.
- * @dev The BadgeDefinitionFactory contract provides basic structures, functions & modifiers that allows to manage BadgeDefinition as ERC721 token.
+ * @dev The BadgeDefinitionFactory contract provides basic structures, functions & modifiers that allow to manage BadgeDefinition as ERC721 token.
  */
 contract BadgeDefinitionFactory is BadgeFactory {
 
@@ -50,7 +50,7 @@ contract BadgeDefinitionFactory is BadgeFactory {
     * @param _badgeDefinitionId The ID of the BadgeDefinition.
     */
     modifier onlyUnpublishedBadgeDefinition(uint _badgeDefinitionId) {
-        require(!(_badgeDefinitions[_badgeDefinitionId].isPublished), string(abi.encodePacked(badgeDefinitionSymbol, ": attempt to modify an already published token (now read-only)")));
+        require(!(_badgeDefinitions[_badgeDefinitionId].isPublished), string(abi.encodePacked(badgeDefinitionSymbol, ":  readonly token")));
         _;
     }
 
@@ -59,7 +59,7 @@ contract BadgeDefinitionFactory is BadgeFactory {
     * @param _badgeDefinitionId The ID of the BadgeDefinition.
     */
     modifier onlyPublishedBadgeDefinition(uint _badgeDefinitionId) {
-        require(_badgeDefinitions[_badgeDefinitionId].isPublished, string(abi.encodePacked(badgeDefinitionSymbol, ": attempt to use an unpublished token (it has to be published first)")));
+        require(_badgeDefinitions[_badgeDefinitionId].isPublished, string(abi.encodePacked(badgeDefinitionSymbol, ": unpublished token")));
         _;
     }
 
@@ -97,9 +97,9 @@ contract BadgeDefinitionFactory is BadgeFactory {
     * @param _operator The operator allowing to compare the query return.
     * @param _condition The value to compare with the query result.
     */
-    function addBadgeAttributionCondition(uint _badgeDefinitionId, string memory _description, string memory _indexer, string memory _protocol, string memory _query, string memory _operator, string memory _condition) public onlyOwnerOf(_badgeDefinitionId) onlyUnpublishedBadgeDefinition(_badgeDefinitionId) {
+    function addBadgeAttributionCondition(uint _badgeDefinitionId, string memory _description, string memory _indexer, string memory _protocol, string memory _query, string memory _operator, string memory _condition) public existingBadge(_badgeDefinitionId) onlyOwnerOf(_badgeDefinitionId) onlyUnpublishedBadgeDefinition(_badgeDefinitionId) {
         // Asserting the maximum of conditions for this token has not already been reached
-        require(_attributionConditionList[_badgeDefinitionId].length <= maxNumberOfAttributionConditions, string(abi.encodePacked(badgeDefinitionSymbol, ": maximum number of conditions for the token already reached")));
+        require(_attributionConditionList[_badgeDefinitionId].length <= maxNumberOfAttributionConditions, string(abi.encodePacked(badgeDefinitionSymbol, ": too many conditions")));
 
         // Storing the BadgeAttributionCondition
         _badgeAttributionConditions.push(BadgeAttributionCondition({ badgeDefinitionId:_badgeDefinitionId, description: _description, indexer: _indexer, protocol: _protocol, query: _query, operator: _operator, condition: _condition}));
@@ -116,12 +116,27 @@ contract BadgeDefinitionFactory is BadgeFactory {
     * @dev Allows the BadgeDefinition to become usable to produce badges & emit a NewBadgeDefinition event.
     * @param _badgeDefinitionId The ID of the BadgeDefinition.
     */
-    function publishBadgeDefinition(uint _badgeDefinitionId) public onlyOwnerOf(_badgeDefinitionId) onlyUnpublishedBadgeDefinition(_badgeDefinitionId) {
+    function publishBadgeDefinition(uint _badgeDefinitionId) public existingBadge(_badgeDefinitionId) onlyOwnerOf(_badgeDefinitionId) onlyUnpublishedBadgeDefinition(_badgeDefinitionId) {
         // Set the BadgeDefinition as pusblished
         _badgeDefinitions[_badgeDefinitionId].isPublished = true;
 
         // Emit the appropriate event
         emit NewBadgeDefinition(_badgeDefinitionId, _badgeDefinitions[_badgeDefinitionId].name, _badgeDefinitions[_badgeDefinitionId].description, _badgeDefinitions[_badgeDefinitionId].tags, _badgeDefinitions[_badgeDefinitionId].image_uri);
+    }
+
+    /**
+    * @notice Function to retrieve the informations associated to a BadgeDefinition.
+    * @dev Get the informations associated to a BadgeDefinition (except the conditions).
+    * @param _badgeDefinitionId The ID of the BadgeDefinition.
+    * @return _name The name of the token.
+    * @return _description The descrition of the token.
+    * @return _tags The list of the tags associated to the token.
+    * @return _image_uri The URI of the image associated to the token.
+    * @return _isTransferable The flag indicates if BadgeToken producted using it can be transfered.
+    */
+    function getBadgeDefinition(uint _badgeDefinitionId) public view existingBadge(_badgeDefinitionId) onlyPublishedBadgeDefinition(_badgeDefinitionId) returns (string memory _name, string memory _description, string[] memory _tags, string memory _image_uri, bool _isTransferable) {
+        // Return the informations
+        return (_badgeDefinitions[_badgeDefinitionId].name, _badgeDefinitions[_badgeDefinitionId].description, _badgeDefinitions[_badgeDefinitionId].tags, _badgeDefinitions[_badgeDefinitionId].image_uri, _badgeDefinitions[_badgeDefinitionId].isTransferable);
     }
 
     /**
@@ -149,7 +164,7 @@ contract BadgeDefinitionFactory is BadgeFactory {
     * @param _badgeDefinitionId The ID of the BadgeDefinition.
     * @return _isTransferable The result of the test.
     */
-    function isBadgeTransferable(uint _badgeDefinitionId) public view onlyPublishedBadgeDefinition(_badgeDefinitionId) returns (bool _isTransferable) {
+    function isBadgeTransferable(uint _badgeDefinitionId) external view onlyPublishedBadgeDefinition(_badgeDefinitionId) returns (bool _isTransferable) {
         return _badgeDefinitions[_badgeDefinitionId].isTransferable;
     }
 
@@ -160,7 +175,7 @@ contract BadgeDefinitionFactory is BadgeFactory {
     * @return The result URI associated to the token.
     */
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+        require(_exists(tokenId), "ERC721Metadata: nonexistent token");
 
         string memory baseURI = _baseURI();
         return bytes(baseURI).length > 0

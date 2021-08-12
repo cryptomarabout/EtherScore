@@ -4,6 +4,7 @@
 ```bash
 $ cd <repo root>/contracts
 $ npm install --save-dev truffle                    # Installing development framework
+$ npm install --save-dev truffle-contract-size      # Adding a tools to assist code size optimization 
 $ npx truffle init                                  # Creating the project
 $ npm install --save-dev @openzeppelin/contracts    # Adding libraries
 $ npm install --save-dev ganache-cli                # Installing deployment tools
@@ -23,6 +24,12 @@ $ npx solidity-docgen --solc-module solc-0.8 -i ./contracts -o ./docs -t ./docs
 ```bash
 $ cd <repo root>/contracts
 $ npx truffle compile
+```
+
+## Cheking for the size of the smart contracts (each one has to stay below 24576 bytes)
+```bash
+$ cd <repo root>/contracts
+$ npx truffle run contract-size --checkMaxSize
 ```
 
 ## Deploy locally the smart contracts (will compile the code)
@@ -86,3 +93,5 @@ See [Solidity documentation](https://docs.soliditylang.org/en/develop/index.html
 See [Truffle homepage](https://www.trufflesuite.com/truffle).
 
 See [How to document Solidity smart contracts with no sweat](https://medium.com/coinmonks/how-to-document-solidity-smart-contracts-with-no-sweat-e78936ede833).
+
+See [Downsizing contracts to fight the contract size limit](https://soliditydeveloper.com/max-contract-size).

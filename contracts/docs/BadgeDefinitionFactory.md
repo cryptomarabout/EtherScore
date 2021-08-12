@@ -1,10 +1,11 @@
-The BadgeDefinitionFactory contract provides basic structures, functions & modifiers that allows to manage BadgeDefinition as ERC721 token.
+The BadgeDefinitionFactory contract provides basic structures, functions & modifiers that allow to manage BadgeDefinition as ERC721 token.
 
 # Functions:
 - [`constructor()`](#BadgeDefinitionFactory-constructor--)
 - [`createBadgeDefinition(string _name, string _description, string[] _tags, string _image_uri, bool _isTransferable)`](#BadgeDefinitionFactory-createBadgeDefinition-string-string-string---string-bool-)
 - [`addBadgeAttributionCondition(uint256 _badgeDefinitionId, string _description, string _indexer, string _protocol, string _query, string _operator, string _condition)`](#BadgeDefinitionFactory-addBadgeAttributionCondition-uint256-string-string-string-string-string-string-)
 - [`publishBadgeDefinition(uint256 _badgeDefinitionId)`](#BadgeDefinitionFactory-publishBadgeDefinition-uint256-)
+- [`getBadgeDefinition(uint256 _badgeDefinitionId)`](#BadgeDefinitionFactory-getBadgeDefinition-uint256-)
 - [`getBadgeDefinitionAttributionCondition(uint256 _badgeDefinitionId)`](#BadgeDefinitionFactory-getBadgeDefinitionAttributionCondition-uint256-)
 - [`isBadgeTransferable(uint256 _badgeDefinitionId)`](#BadgeDefinitionFactory-isBadgeTransferable-uint256-)
 - [`tokenURI(uint256 tokenId)`](#BadgeDefinitionFactory-tokenURI-uint256-)
@@ -52,6 +53,22 @@ Allows the BadgeDefinition to become usable to produce badges & emit a NewBadgeD
 
 ## Parameters:
 - `_badgeDefinitionId`: The ID of the BadgeDefinition.
+# Function `getBadgeDefinition(uint256 _badgeDefinitionId) → string _name, string _description, string[] _tags, string _image_uri, bool _isTransferable` {#BadgeDefinitionFactory-getBadgeDefinition-uint256-}
+Get the informations associated to a BadgeDefinition (except the conditions).
+
+## Parameters:
+- `_badgeDefinitionId`: The ID of the BadgeDefinition.
+
+## Return Values:
+- _name The name of the token.
+
+- _description The descrition of the token.
+
+- _tags The list of the tags associated to the token.
+
+- _image_uri The URI of the image associated to the token.
+
+- _isTransferable The flag indicates if BadgeToken producted using it can be transfered.
 # Function `getBadgeDefinitionAttributionCondition(uint256 _badgeDefinitionId) → uint256 _numberOfAttributionCondition, struct BadgeFactory.BadgeAttributionCondition[5] _badgeDefinitionAttributionConditions` {#BadgeDefinitionFactory-getBadgeDefinitionAttributionCondition-uint256-}
 Get the list of BadgeAttributionCondition associated to a BadgeDefinition.
 

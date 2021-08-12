@@ -10,7 +10,7 @@ import "./BadgeQueryOracle.sol";
  * @title BadgeTokenFactory
  * @author Geoffrey Garcia
  * @notice Contract to use to mint and to transfer (if applicable based on associated BadgeDefinition) BadgeToken that are ERC721 tokens.
- * @dev The BadgeTokenFactory contract provides basic structures, functions & modifiers that allows to manage BadgeToken as ERC721 token.
+ * @dev The BadgeTokenFactory contract provides basic structures, functions & modifiers that allow to manage BadgeToken as ERC721 token.
  */
 contract BadgeTokenFactory is BadgeFactory {
 
@@ -20,11 +20,12 @@ contract BadgeTokenFactory is BadgeFactory {
     * @notice Event emitted to request for a query to be run.
     * @dev Event emitted to request for a query to be run for BadgeToken minting.
     * @param _requestID The ID of the query.
+    * @param _caller The Ethereum address which has requested for the right to mint the token.
     * @param _indexer The service indexing the data (possible values: "thegraph, "covalent").
     * @param _protocol The set/subgraph on the indexer to use (possible values: "uniswap", "compound" ,"aave" ,"ethereum").
     * @param _query The query to run.
     */
-    event QueryRequest(bytes32 _requestID, string _indexer, string _protocol, string _query);
+    event QueryRequest(bytes32 _requestID, address _caller, string _indexer, string _protocol, string _query);
 
     /**
     * @notice Event emitted after the query and its result have been record into the blockchain.
@@ -57,6 +58,17 @@ contract BadgeTokenFactory is BadgeFactory {
         string[maxNumberOfAttributionConditions] specialValues; // the special value associated with this badge (optional)
     }
 
+    // Badge token ownership structure
+    struct BadgeOwnership {
+        bool isPopulated;                          // true if the user has already owned any badge
+        mapping(uint => uint) definitionToIndex;   // the BadgeDefinition referring to an index
+        mapping(uint => uint) indexToToken;        // the index referring to an BadgeToken
+        uint maxIndex;                             // the number of tokens ever owned
+        address previousRank;                      // the previous account in the token leader board ('0' if leader)
+        address nextRank;                          // the next account in the token leader board ('0' if last)
+        uint isThreshold;                          // set with the threshold value if applicable ('-1' if not)
+    }
+
     // Pending minting structure
     struct PendingMinting {
         address caller;                                // the Ethereum address which has requested for the query result
@@ -70,15 +82,18 @@ contract BadgeTokenFactory is BadgeFactory {
     }
 
     // Storage of the badge tokens
-    BadgeToken[] private _badgeTokens;                              // BadgeToken storage
-    mapping(address => mapping(uint => uint)) private _ownedBadges; // List of BadgeToken IDs per owner per BadgeDefinition
-    string badgeTokenSymbol = "BTO";                                // Symbol of the ERC721 tokens of the BadgeToken
+    BadgeToken[] private _badgeTokens;                       // BadgeToken storage
+    address _boardLeader;                                    // The leader is the account owning the most tokens
+    address _boardLast;                                      // The last is the account owning the least tokens
+    mapping(uint => address) private _boardThresholds;       // List of thresholds of the leaderboard of owned tokens
+    mapping(address => BadgeOwnership) private _ownedBadges; // List of BadgeToken IDs per owner per BadgeDefinition
+    string badgeTokenSymbol = "BTO";                         // Symbol of the ERC721 tokens of the BadgeToken
 
-    // Storage of the badge minting
+    // Storage for the badge minting
     Counters.Counter private _mintingNonce;                                     // a nonce injected to build the ID of the condition group to mint the badge
     mapping(bytes32 => PendingMinting) private _pendingMintings;                // the list of pending badge mintings
     mapping(address => mapping(uint => bytes32)) private _pendingMintingBadges; // List of pending badge mintings per owner per BadgeDefinition
-    mapping(bytes32 => bytes32) private _pendingQueries;                        // the list of pending queriesn
+    mapping(bytes32 => bytes32) private _pendingQueries;                        // the list of pending queries
 
     // Reference to the BadgeDefinitionFactory contract allowing to manage BadgeDefinition
     BadgeDefinitionFactory badgeDefinitionFactory;
@@ -99,28 +114,11 @@ contract BadgeTokenFactory is BadgeFactory {
     /**
     * @dev Throws if the badge is already owned.
     * @param _badgeDefinitionId The ID of BadgeDefinition associated to this BadgeToken.
+    * @param _to The Ethereum address of the user that could receive the token.
     */
-    modifier notOwned(uint _badgeDefinitionId) {
-        require(_ownedBadges[_msgSender()][_badgeDefinitionId] == 0, string(abi.encodePacked(badgeTokenSymbol, ": badge already owned")));
+    modifier notOwned(uint _badgeDefinitionId, address _to) {
+        require(_ownedBadges[_to].definitionToIndex[_badgeDefinitionId] == 0, string(abi.encodePacked(badgeTokenSymbol, ": already owned")));
         //TODO: check orignalOwner instead?
-        _;
-    }
-
-    /**
-    * @dev Throws if the badge minting process is already in progress.
-    * @param _badgeDefinitionId The ID of BadgeDefinition associated to this BadgeToken.
-    */
-    modifier isNotPendingMinting(uint _badgeDefinitionId) {
-        require(_pendingMintingBadges[_msgSender()][_badgeDefinitionId] == 0, string(abi.encodePacked(badgeTokenSymbol, ": badge already in minting process")));
-        _;
-    }
-
-    /**
-    * @dev Throws if the badge minting process is not in progress.
-    * @param _badgeDefinitionId The ID of BadgeDefinition associated to this BadgeToken.
-    */
-    modifier isPendingMinting(uint _badgeDefinitionId) {
-        require(_pendingMintingBadges[_msgSender()][_badgeDefinitionId] != 0, string(abi.encodePacked(badgeTokenSymbol, ": badge not in minting process")));
         _;
     }
 
@@ -129,31 +127,43 @@ contract BadgeTokenFactory is BadgeFactory {
     * @dev Creates & store a BadgeToken.
     * @param _badgeDefinitionId The ID of BadgeDefinition associated to this BadgeToken.
     */
-    function requestBadgeTokenMinting(uint _badgeDefinitionId) notOwned(_badgeDefinitionId) isNotPendingMinting(_badgeDefinitionId) public {
+    function requestBadgeTokenMinting(uint _badgeDefinitionId) external {
+        requestBadgeTokenDroping(_badgeDefinitionId, _msgSender());
+    }
+
+    /**
+    * @notice Function to mint a BadgeToken as ERC721 tokens.
+    * @dev Creates & store a BadgeToken.
+    * @param _badgeDefinitionId The ID of BadgeDefinition associated to this BadgeToken.
+    * @param _to The Ethereum address of the user that could receive the token.
+    */
+    function requestBadgeTokenDroping(uint _badgeDefinitionId, address _to) notOwned(_badgeDefinitionId, _to) public {
+        require(_pendingMintingBadges[_to][_badgeDefinitionId] == 0, string(abi.encodePacked(badgeTokenSymbol, ": in minting process")));
         // Creating for the penting minting
         _mintingNonce.increment();
-        bytes32 badgeConditionGroupID = keccak256(abi.encodePacked(block.timestamp, _msgSender(), _mintingNonce.current()));
+        bytes32 badgeConditionGroupID = keccak256(abi.encodePacked(block.timestamp, _to, _mintingNonce.current()));
 
         // Add the badge minting to the ones asked by the user
-        _pendingMintingBadges[_msgSender()][_badgeDefinitionId] = badgeConditionGroupID;
+        _pendingMintingBadges[_to][_badgeDefinitionId] = badgeConditionGroupID;
 
         // Storing for the penting minting
         PendingMinting storage pendingMinting = _pendingMintings[badgeConditionGroupID];
-        pendingMinting.caller = _msgSender();
+        pendingMinting.caller = _to;
 
         // Get the BadgeAttributionCondition list associated to this BadgeDefinition
         BadgeAttributionCondition[maxNumberOfAttributionConditions] memory badgeAttributionCondition;
-        uint numberOfConditions = 0;
+        uint numberOfConditions;
+        // uint numberOfConditions = 0;
         (numberOfConditions, badgeAttributionCondition) = badgeDefinitionFactory.getBadgeDefinitionAttributionCondition(_badgeDefinitionId);
         pendingMinting.numberOfConditions = numberOfConditions;
 
         // Check for every condition in the list
         for(uint i=0; i < numberOfConditions; i++){
             // Ask the Oracle to obtain the result of the query
-            bytes32 requestID = badgeQueryOracle.runQuery(_msgSender(), badgeConditionGroupID, badgeAttributionCondition[i].indexer, badgeAttributionCondition[i].protocol, badgeAttributionCondition[i].query);
+            bytes32 requestID = badgeQueryOracle.runQuery(_to, badgeConditionGroupID, badgeAttributionCondition[i].indexer, badgeAttributionCondition[i].protocol, badgeAttributionCondition[i].query);
             
             // Asking for the query to be run
-            emit QueryRequest(requestID, badgeAttributionCondition[i].indexer, badgeAttributionCondition[i].protocol, badgeAttributionCondition[i].query);
+            emit QueryRequest(requestID, _to, badgeAttributionCondition[i].indexer, badgeAttributionCondition[i].protocol, badgeAttributionCondition[i].query);
             
             // Store the references & status of the query
             _pendingQueries[requestID] = badgeConditionGroupID;
@@ -170,7 +180,7 @@ contract BadgeTokenFactory is BadgeFactory {
     * @param _requestID The ID of the query.
     * @param _queryResult The result of the query.
     */
-    function updateBadgeTokenMinting(bytes32 _requestID, string memory _queryResult) public {
+    function updateBadgeTokenMinting(bytes32 _requestID, string memory _queryResult) external {
         bytes32 badgeConditionGroupID = _pendingQueries[_requestID];
         // string memory requestIDString = _bytes32ToString(_requestID);
         // require(badgeConditionGroupID != 0, string(abi.encodePacked(badgeTokenSymbol, ": wrong request ID(", requestIDString, ") badgeConditionGroupID:", badgeConditionGroupID)));
@@ -209,27 +219,38 @@ contract BadgeTokenFactory is BadgeFactory {
     * @param _badgeDefinitionId The ID of BadgeDefinition associated to this BadgeToken.
     * @return _badgeTokenId The ID of the new BadgeToken.
     */
-    function mintBadgeToken(uint _badgeDefinitionId) notOwned(_badgeDefinitionId) isPendingMinting(_badgeDefinitionId) public returns (uint _badgeTokenId) {
+    function mintBadgeToken(uint _badgeDefinitionId) external returns (uint _badgeTokenId) {
+        // Returning the ID of the new BadgeToken
+        return dropBadgeToken(_badgeDefinitionId, _msgSender());
+    }
+
+    /**
+    * @notice Function to drop a BadgeToken as ERC721 tokens.
+    * @dev Creates & store a BadgeToken.
+    * @param _badgeDefinitionId The ID of BadgeDefinition associated to this BadgeToken.
+    * @param _to The Ethereum address of the user that could receive the token.
+    * @return _badgeTokenId The ID of the new BadgeToken.
+    */
+    function dropBadgeToken(uint _badgeDefinitionId, address _to) notOwned(_badgeDefinitionId, _to) public returns (uint _badgeTokenId) {
         // Identifying the badge the user want to mint
-        bytes32 badgeConditionGroupID = _pendingMintingBadges[_msgSender()][_badgeDefinitionId];
+        bytes32 badgeConditionGroupID = _pendingMintingBadges[_to][_badgeDefinitionId];
         PendingMinting storage pendingMinting = _pendingMintings[badgeConditionGroupID];
-        require(_msgSender() == pendingMinting.caller, string(abi.encodePacked(badgeTokenSymbol, ": not the user who has requested the token")));
+        require(_to == pendingMinting.caller, string(abi.encodePacked(badgeTokenSymbol, ": not the right user")));
 
         string[maxNumberOfAttributionConditions] memory _specialValues;
-        require(_assessAttributionCondition(pendingMinting, _specialValues), string(abi.encodePacked(badgeTokenSymbol, ": attempt to mint a token without fullfilling the attribution conditions to get it")));
+        require(_assessAttributionCondition(pendingMinting, _specialValues), string(abi.encodePacked(badgeTokenSymbol, ": not fullfilling the conditions")));
         
         // Storing the BadgeToken
-        _badgeTokens.push(BadgeToken({ badgeDefinitionId: _badgeDefinitionId, originalOwner: _msgSender(), specialValues: _specialValues}));
+        _badgeTokens.push(BadgeToken({ badgeDefinitionId: _badgeDefinitionId, originalOwner: _to, specialValues:  _specialValues}));
         
         // Getting the ID of the new BadgeToken
-        // uint badgeTokenId = _badgeTokens.length - 1;
         uint badgeTokenId = _badgeTokens.length;
 
         // Add the badge to the ones owned by the user
-        _ownedBadges[_msgSender()][_badgeDefinitionId] = badgeTokenId;
+        _setOwnership(_to, badgeTokenId);
 
         // Minting the BadgeToken
-        _safeMint(_msgSender(), badgeTokenId);
+        _safeMint(_to, badgeTokenId);
 
         // Removing the stored pending badge minting
         for(uint i=0; i < pendingMinting.numberOfConditions; i++){
@@ -241,11 +262,11 @@ contract BadgeTokenFactory is BadgeFactory {
             delete pendingMinting._evaluationCondition[requestID];
             delete pendingMinting._queryIndex[i];
         }
-        delete _pendingMintingBadges[_msgSender()][_badgeDefinitionId];
+        delete _pendingMintingBadges[_to][_badgeDefinitionId];
         delete _pendingMintings[badgeConditionGroupID];
 
         // Emit the appropriate event
-        emit NewBadgeToken(badgeTokenId, _msgSender());
+        emit NewBadgeToken(badgeTokenId, _to);
 
         return badgeTokenId;
     }
@@ -256,7 +277,7 @@ contract BadgeTokenFactory is BadgeFactory {
     * @param _pendingMinting The pending badge minting structure.
     * @param _specialValues The special values to be stored (optional).
     * @return _evaluationResult The result of the test.
-    */
+    */ 
     function _assessAttributionCondition(PendingMinting storage _pendingMinting, string[maxNumberOfAttributionConditions] memory _specialValues) private view returns (bool _evaluationResult) {
         _evaluationResult = true;
 
@@ -273,53 +294,31 @@ contract BadgeTokenFactory is BadgeFactory {
     }
 
     /**
-    * @notice Function to evaluate a condition.
-    * @dev Check if a condition to mint a badge is met.
-    * @param _queryResult The result of the query.
-    * @param _operator The operator allowing to compare the query return.
-    * @param _condition The value to compare with the query result.
-    * @param _specialValue The special value to be stored (optional).
-    * @return _evaluationResult The result of the test.
+    * @notice Function to retreive all badges (and associated IDs of BadgeDefinition) the user currently owns.
+    * @dev Return two lists of IDs correlated by their index.
+    * @param _owner The Ethereum address of the user.
+    * @return _totalNumberOfBadges The size of the returned lists.
+    * @return _badgeDefinitionIds The ID of BadgeDefinition associated to the BadgeToken the user owns.
+    * @return _badgeTokenIds The ID of BadgeToken the user owns.
     */
-    function _evaluateCondition(string memory _queryResult, string memory _operator, string memory _condition, string memory _specialValue) private pure returns (bool _evaluationResult) {
-        _evaluationResult = false;
-
-        bytes32 operatorHash = keccak256(bytes(_operator));
-
-        // Evaluate the query return
-        if(operatorHash == keccak256(bytes("<"))){
-            _evaluationResult = _stringToUint(_queryResult) < _stringToUint(_condition);
-        } else{
-            if(operatorHash == keccak256(bytes("<="))){
-                _evaluationResult = _stringToUint(_queryResult) <= _stringToUint(_condition);
-            } else{
-                if(operatorHash == keccak256(bytes(">"))){
-                    _evaluationResult = _stringToUint(_queryResult) > _stringToUint(_condition);
-                } else{
-                    if(operatorHash == keccak256(bytes(">="))){
-                        _evaluationResult = _stringToUint(_queryResult) >= _stringToUint(_condition);
-                        // _evaluationResult = false;
-                    } else{
-                        if(operatorHash == keccak256(bytes("=="))){
-                            _evaluationResult = _stringToUint(_queryResult) == _stringToUint(_condition);
-                        } else{
-                            if(operatorHash == keccak256(bytes("!="))){
-                                _evaluationResult = _stringToUint(_queryResult) != _stringToUint(_condition);
-                            } else{
-                                if(operatorHash == keccak256(bytes("special"))){
-                                    _evaluationResult = true;
-                                    _specialValue = _queryResult;
-                                } else{
-
-                                } 
-                            } 
-                        } 
-                    } 
-                } 
+    function getAllOwnedBadges(address _owner) external view returns (uint _totalNumberOfBadges, uint[] memory _badgeDefinitionIds, uint[] memory _badgeTokenIds) {
+        // Looking for a BadgeToken owned by this user
+        if(_ownedBadges[_owner].isPopulated == true){
+            uint ownedToken;
+            _badgeDefinitionIds = new uint[](this.balanceOf(_owner));
+            _badgeTokenIds = new uint[](this.balanceOf(_owner));
+            for(uint i=1; i <= _ownedBadges[_owner].maxIndex; i++){
+                ownedToken = _ownedBadges[_owner].indexToToken[i];
+                // Only concidering still owned tokens
+                if(ownedToken != 0){
+                    _badgeDefinitionIds[_totalNumberOfBadges] = _badgeTokens[ownedToken - 1].badgeDefinitionId;
+                    _badgeTokenIds[_totalNumberOfBadges] = ownedToken;
+                    (_totalNumberOfBadges)++;
+                }
             } 
         } 
 
-        return _evaluationResult;
+        return (_totalNumberOfBadges, _badgeDefinitionIds, _badgeTokenIds);
     }
 
     /**
@@ -329,11 +328,12 @@ contract BadgeTokenFactory is BadgeFactory {
     * @param _badgeDefinitionId The ID of BadgeDefinition.
     * @return _evaluationResult The result of the test.
     */
-    function doesOwnBadgeFromGivenDefinition(address _owner, uint _badgeDefinitionId) public view returns (bool _evaluationResult) {
+    function doesOwnBadgeFromGivenDefinition(address _owner, uint _badgeDefinitionId) external view returns (bool _evaluationResult) {
         _evaluationResult = true;
 
         // Check for a BadgeToken potentially owned by this user associated to the BadgeDefinition
-        if(_ownedBadges[_owner][_badgeDefinitionId] == 0){
+        uint tokenIndex = _ownedBadges[_owner].definitionToIndex[_badgeDefinitionId];
+        if(tokenIndex == 0){
             _evaluationResult = false;
         } 
 
@@ -348,13 +348,95 @@ contract BadgeTokenFactory is BadgeFactory {
     * @param tokenId The ID of the BadgeToken.
     */
     function _transfer(address from, address to, uint256 tokenId) internal override {
-        uint tokenIdex = tokenId - 1;
+        uint tokenIndex = tokenId - 1;
 
         // Check if the token can be transfered
-        require(badgeDefinitionFactory.isBadgeTransferable(_badgeTokens[tokenIdex].badgeDefinitionId), string(abi.encodePacked(badgeTokenSymbol, ": this token is bind to its original owner", _badgeTokens[tokenIdex].originalOwner)));
+        require(badgeDefinitionFactory.isBadgeTransferable(_badgeTokens[tokenIndex].badgeDefinitionId), string(abi.encodePacked(badgeTokenSymbol, ": nontransferable", _badgeTokens[tokenIndex].originalOwner)));
+
+        // Creating the new ownership
+        _setOwnership(to, tokenId);
+
+        // Removing the old ownership
+        uint oldIndex = _ownedBadges[from].definitionToIndex[_badgeTokens[tokenIndex].badgeDefinitionId];
+        _ownedBadges[from].definitionToIndex[_badgeTokens[tokenIndex].badgeDefinitionId] = 0;
+        _ownedBadges[from].indexToToken[oldIndex] = 0;
+
+        // Updating the leaderboard (WIP)
+        //_updateLeaderboard(from);
 
         // Transfer the token (if applicable)
         super._transfer(from, to, tokenId);
+    }
+
+    /**
+    * @notice Function to define a token ownership.
+    * @dev The address `_owner` become the owner of the token `_tokenId`.
+    * @param _owner The Ethereum address of the user.
+    * @param _tokenId The ID of the BadgeToken.
+    */
+    function _setOwnership(address _owner, uint _tokenId) internal {
+        // Creating the ownership
+        if(_ownedBadges[_owner].isPopulated == false){
+            _ownedBadges[_owner].isPopulated = true;
+        }
+        (_ownedBadges[_owner].maxIndex)++;
+        _ownedBadges[_owner].definitionToIndex[_badgeTokens[_tokenId - 1].badgeDefinitionId] = _ownedBadges[_owner].maxIndex;
+        _ownedBadges[_owner].indexToToken[_ownedBadges[_owner].maxIndex] = _tokenId;
+
+        // Updating the leaderboard (WIP)
+        //_updateLeaderboard(_owner);
+    }
+
+    /**
+    * @notice Function to define a token ownership.
+    * @dev The address `_owner` become the owner of the token `_tokenId`.
+    * @param _owner The Ethereum address of the user.
+    */
+    function _updateLeaderboard(address _owner) internal {
+        uint balance = balanceOf(_owner);
+
+        // Removing old links (if applicable)
+        if((_ownedBadges[_owner].previousRank != address(0)) || (_ownedBadges[_owner].nextRank != address(0))){ 
+            _ownedBadges[_ownedBadges[_owner].previousRank].nextRank = _ownedBadges[_owner].nextRank;
+            _ownedBadges[_ownedBadges[_owner].nextRank].previousRank = _ownedBadges[_owner].previousRank;
+            if(_ownedBadges[_owner].isThreshold != 0){
+                // Updating threshold indexes
+                _ownedBadges[_ownedBadges[_owner].nextRank].isThreshold = _ownedBadges[_owner].isThreshold;
+            }
+        } 
+
+        // Identify new rank
+        address previous;
+        address next;
+        if(balance == 0){
+            // Taking the last rank
+            previous = _boardLast;
+            next = address(0);
+            _boardLast = _owner;
+        } else {
+            // Locating next & previous rank
+            next = _boardThresholds[balance - 1];
+            if(next == address(0)){
+                // Taking the last rank
+                previous = _boardLast;
+                _boardLast = _owner;
+            } else {
+                previous = _ownedBadges[next].previousRank;
+            } 
+            if(previous == address(0)){
+                // Taking the lead
+                _boardLeader = _owner;
+                _ownedBadges[_owner].isThreshold = balance;
+                _boardThresholds[balance] = _owner;
+            }
+        }
+
+        // Updating new links
+        _ownedBadges[_owner].previousRank = previous;
+        _ownedBadges[_owner].nextRank = next;
+
+        // Updathing thresholds
+        // TODO
     }
 
     /**
@@ -364,11 +446,11 @@ contract BadgeTokenFactory is BadgeFactory {
     * @return The result URI associated to the token.
     */
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+        require(_exists(tokenId), "ERC721Metadata: nonexistent token");
 
-        uint tokenIdex = tokenId - 1;
+        uint tokenIndex = tokenId - 1;
         
-        string memory URI = badgeDefinitionFactory.tokenURI(_badgeTokens[tokenIdex].badgeDefinitionId);
+        string memory URI = badgeDefinitionFactory.tokenURI(_badgeTokens[tokenIndex].badgeDefinitionId);
         return bytes(URI).length > 0
             ? string(URI)
             : '';

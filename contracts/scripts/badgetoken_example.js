@@ -1,6 +1,4 @@
-// scripts/index2.js
-// var bigInt = require("big-integer");
-
+// scripts/badgetoken_example.js
 module.exports = async function main(callback) {
   try {
     // Retrieve accounts from the local node

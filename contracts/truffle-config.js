@@ -85,10 +85,10 @@ module.exports = {
       version: "0.8.0",    // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
       // settings: {          // See the solidity docs for advice about optimization and evmVersion
-      //  optimizer: {
-      //    enabled: false,
-      //    runs: 200
-      //  },
+       optimizer: {
+         enabled: true,   // Default: false
+         runs: 200        // Default: 200
+       }
       //  evmVersion: "byzantium"
       // }
     }
@@ -102,5 +102,9 @@ module.exports = {
 
   db: {
     enabled: false
-  }
+  }, 
+
+  plugins: [
+    "truffle-contract-size"
+  ]
 };

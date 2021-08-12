@@ -24,11 +24,11 @@ abstract contract BadgeFactory is ERC721Enumerable, Ownable {
         string condition;       // the value to compare with the query result
     }
 
-    // Maximum number of conditions that can be associated to a single badge
-    uint8 constant maxNumberOfAttributionConditions = 5;
-
     // Badge base URI
     string private _badgeBaseURI;
+
+    // Maximum number of conditions that can be associated to a single badge
+    uint8 constant maxNumberOfAttributionConditions = 5;
 
     /**
     * @dev See {ERC721-constructor}.
@@ -44,8 +44,7 @@ abstract contract BadgeFactory is ERC721Enumerable, Ownable {
     * @param _badgeId The ID of the Badge.
     */
     modifier onlyOwnerOf(uint _badgeId) {
-        require(_exists(_badgeId), "ERC721: attempt to modify nonexistent token");
-        require(_isApprovedOrOwner(_msgSender(), _badgeId), "ERC721: modifier caller is not owner nor approved");
+        require(_isApprovedOrOwner(_msgSender(), _badgeId), "ERC721: not owner");
         _;
     }
 
@@ -54,7 +53,7 @@ abstract contract BadgeFactory is ERC721Enumerable, Ownable {
     * @param _badgeId The ID of the Badge.
     */
     modifier existingBadge(uint _badgeId) {
-        require(_exists(_badgeId), "ERC721: attempt to modify nonexistent token");
+        require(_exists(_badgeId), "ERC721: nonexistent token");
         _;
     }
 
@@ -72,6 +71,55 @@ abstract contract BadgeFactory is ERC721Enumerable, Ownable {
      */
     function _setBaseURI(string memory baseURI_) private {
         _badgeBaseURI = baseURI_;
+    }
+
+    /**
+    * @notice Function to evaluate a condition.
+    * @dev Check if a condition to mint a badge is met.
+    * @param _queryResult The result of the query.
+    * @param _operator The operator allowing to compare the query return.
+    * @param _condition The value to compare with the query result.
+    * @param _specialValue The special value to be stored (optional).
+    * @return _evaluationResult The result of the test.
+    */
+    function _evaluateCondition(string memory _queryResult, string memory _operator, string memory _condition, string memory _specialValue) internal pure returns (bool _evaluationResult) {
+        _evaluationResult = false;
+
+        bytes32 operatorHash = keccak256(bytes(_operator));
+
+        // Evaluate the query return
+        if(operatorHash == keccak256(bytes("<"))){
+            _evaluationResult = _stringToUint(_queryResult) < _stringToUint(_condition);
+        } else{
+            if(operatorHash == keccak256(bytes("<="))){
+                _evaluationResult = _stringToUint(_queryResult) <= _stringToUint(_condition);
+            } else{
+                if(operatorHash == keccak256(bytes(">"))){
+                    _evaluationResult = _stringToUint(_queryResult) > _stringToUint(_condition);
+                } else{
+                    if(operatorHash == keccak256(bytes(">="))){
+                        _evaluationResult = _stringToUint(_queryResult) >= _stringToUint(_condition);
+                    } else{
+                        if(operatorHash == keccak256(bytes("=="))){
+                            _evaluationResult = _stringToUint(_queryResult) == _stringToUint(_condition);
+                        } else{
+                            if(operatorHash == keccak256(bytes("!="))){
+                                _evaluationResult = _stringToUint(_queryResult) != _stringToUint(_condition);
+                            } else{
+                                if(operatorHash == keccak256(bytes("special"))){
+                                    _evaluationResult = true;
+                                    _specialValue = _queryResult;
+                                } else{
+
+                                } 
+                            } 
+                        } 
+                    } 
+                } 
+            } 
+        } 
+
+        return _evaluationResult;
     }
 
     function _stringToUint(string memory s) internal pure returns (uint result) {
