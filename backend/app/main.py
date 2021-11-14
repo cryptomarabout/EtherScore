@@ -262,7 +262,7 @@ class CompoundNeverLiquidated(TheGraph):
     """
 
     def __init__(self) -> None:
-        subgraph_url = 'https://api.thegraph.com/subgraphs/name/graphprotocol/compound-v2'
+        subgraph_url = 'https://api.thegraph.com/subgraphs/name/zanepeycke/compound-v2-legacy'
         query = '/app/queries/compound_never_liquidated.ql'
         super().__init__(subgraph_url)
         with open(query, 'r') as f:
@@ -275,7 +275,8 @@ class CompoundNeverLiquidated(TheGraph):
         res = self.run({'address': address})
         if res['account'] != None:
             nb_liquidations = res['account']["countLiquidated"]
-            sumBorrowed = res['account']["totalBorrowValueInEth"]
+            hasBorrowed = res['account']["hasBorrowed"]
+            sumBorrowed = 100
         # TODO: replace 0 indice in next line to use multiple conditions
         badge_passport["conditions"][0]["current"] = sumBorrowed
         badge_passport["conditions"][1]["current"] = nb_liquidations
@@ -289,7 +290,7 @@ class CompoundLiquidator(TheGraph):
     """
 
     def __init__(self) -> None:
-        subgraph_url = 'https://api.thegraph.com/subgraphs/name/graphprotocol/compound-v2'
+        subgraph_url = 'https://api.thegraph.com/subgraphs/name/zanepeycke/compound-v2-legacy'
         query = '/app/queries/compound_liquidator.ql'
         super().__init__(subgraph_url)
         with open(query, 'r') as f:
@@ -341,7 +342,7 @@ async def badges(request: Request):
     try:
         # get the address
         #wallet_address = str(content["wallet_address"])
-        wallet_address = "0xd465be4e63bd09392bac51fcf04aa13412b552d0"
+        wallet_address = "0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1"
     except:
         return "error parsing POST request"
     defs = badges_definitions.copy()
@@ -436,7 +437,7 @@ async def answer_request(request: Request):
             if (protocol == "Uniswap"):
                 subgraph = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
             elif (protocol == "Compound"):
-                subgraph = "https://api.thegraph.com/subgraphs/name/graphprotocol/compound-v2"
+                subgraph = "https://api.thegraph.com/subgraphs/name/zanepeycke/compound-v2-legacy"
             elif (protocol == "Aave"):
                 subgraph = "https://api.thegraph.com/subgraphs/name/aave/protocol-v2"
         elif (indexer == "Covalent"):

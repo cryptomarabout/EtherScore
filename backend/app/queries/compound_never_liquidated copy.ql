@@ -3,5 +3,8 @@
     id
     hasBorrowed
     countLiquidated
+    health
+    totalBorrowValueInEth
+    totalCollateralValueInEth
   }
 }
