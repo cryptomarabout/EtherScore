@@ -68,12 +68,22 @@
                   > 
                     {{ nft.description }}
                   </p>
-                <v-spacer />
+                <v-spacer />         
+                <v-chip
+                  class="text-subtitle-1 font-weight-light black mt-5 mb-5"
+                  outlined
+                  color="green"
+                  justify="start"
+                  v-if="nft.id==0 && displayClaimed"
+                >
+                  Owned
+                </v-chip>
                 <v-chip
                   class="text-subtitle-1 font-weight-light black mt-5 mb-5"
                   outlined
                   color="red"
                   justify="start"
+                  v-else
                 >
                   Not owned
                 </v-chip>
@@ -326,6 +336,9 @@ import json from '../BadgeTokenFactory.json'
       isClaimable(nft){
         for (var condition in nft.conditions) {
           if (this.getExperienceValue(nft.conditions[condition]) !== 100) {
+            return false
+          }
+          if (nft.id==0 && this.displayClaimed){
             return false
           }
         }
