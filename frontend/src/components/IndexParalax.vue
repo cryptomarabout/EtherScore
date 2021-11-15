@@ -1,7 +1,7 @@
 <template>
   <v-container>
      <section>
-        <v-parallax src="@/assets/paralax.jpg" height="500">
+        <v-parallax src="@/assets/paralax2.jpg" height="500" width="100%">
           <v-layout
             column
             align-center
@@ -9,12 +9,12 @@
             class="white--text"
           >
             <img
-              src="@/assets/etherscore_black_transparent.png"
+              src="@/assets/logo.png"
               class="my-3"
-              height="200"
+              height="150"
             />
-            <h1 class="black--text mb-2 display-1 text-center">EtherScore</h1>
-            <div class="black--text subheading mb-4 text-center">NFTs based on Ethereum transaction history</div>
+            <h1 class="white--text mb-2 text-h4 text-center">EtherScore</h1>
+            <div class="white--text text-h5 mb-4 text-center">A Decentralized Reputation System</div>
             <v-btn
               class="mt-12 rounded-xl pa-9"
               dark
@@ -108,7 +108,7 @@
       </section>
 
       <section>
-        <v-parallax src="@/assets/paralax.jpg" height="380">
+        <v-parallax src="@/assets/paralax2.jpg" height="380">
           <v-layout column align-center justify-center>
             <div class="headline black--text mb-4 text-center">Participate to challenges and events</div>
             <em class="black--text"> Get partners offers if you are a reliable user</em>

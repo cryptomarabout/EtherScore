@@ -6,19 +6,13 @@
                 background: linear-gradient(90deg, rgba(168,144,254,1) 0%, rgba(198,143,202,1) 35%, rgba(234,141,141,1) 100%);"
       dark
       flat
+      class="px-15"
     >
-      <div class="d-flex align-center">
-        <v-img
-          alt="EtherScore Logo"
-          class="shrink mr-2"
-          contain
-          :src="require('@/assets/logo.png')"
-          transition="scale-transition"
-          width="40"
-        />
-
-        <h1> EtherScore </h1>
-      </div>
+  <v-app-bar-nav-icon >
+   <v-img src="@/assets/logo.png" width="50px"/>
+   </v-app-bar-nav-icon>
+      <span class="headline font-weight-bold ml-3">EtherScore</span>
+      <v-spacer />
 
       <v-spacer></v-spacer>
       <v-btn
@@ -69,7 +63,7 @@
       <v-spacer></v-spacer>
 
       <v-btn
-        class="rounded-xl pa-6"
+        class="rounded-xl pa-5"
         align="center"
         justify="space-around"
         v-on:click="connectionMetamask()"

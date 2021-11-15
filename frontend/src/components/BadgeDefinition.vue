@@ -2,25 +2,26 @@
     <v-row class="text-center" justify="center">
   <v-card
     elevation="15"
-    style="max-width:700px; max-height: 1000px; border-radius: 20px;
-    padding: 1.5rem;  border: 1px solid; color: white; font-weight: 500;
+    style="max-width:700px; max-height: 1000px;
+    padding: 1.5rem; color: white; font-weight: 500;
     opacity: 0.95;"
     class="pa-10 mt-15"
+    shaped
   >
 
     <v-row>
       <span class="text-h4 font-weight-light black--text">
-        Create new Badge Definition
+        Badge Factory 
       </span>
-      <br/>
-      <p class="text-subtitle-1 font-weight-thin black--text">
-        No-code NFT badge definition issuing
-      </p>
     </v-row>
       <br/>
-      <img class="mx-2 mt-2" height="30px" width="30px" :src="protocolsUrl['Ethereum']" />
-      <p class="subheading font-weight-bold black--text">
-        ERC-721 standard infos
+      <p class="text-subtitle-1 font-weight-thin black--text" align="left">
+        No-code NFT badge issuing
+      </p>
+      <br/>
+      <img height="42px" width="42px" :src="protocolsUrl['Ethereum']" />
+      <p class="text-h6 font-weight-regular black--text">
+        ERC-721 Standard
       </p>
         <template>
           <v-form
@@ -31,7 +32,7 @@
 
             <v-row>
               <v-col cols="4">
-                <v-subheader>Badge Name</v-subheader>
+                <v-subheader class="text-subtitle-1">Badge Name</v-subheader>
               </v-col>
               <v-col cols="8">
                 <v-text-field
@@ -49,7 +50,7 @@
 
             <v-row>
               <v-col cols="4">
-                <v-subheader>Description</v-subheader>
+                <v-subheader class="text-subtitle-1">Description</v-subheader>
               </v-col>
               <v-col cols="8">
                   <v-textarea
@@ -67,7 +68,7 @@
 
             <v-row>
               <v-col cols="4">
-                <v-subheader>Ipfs URI</v-subheader>
+                <v-subheader class="text-subtitle-1">IPFS URI</v-subheader>
               </v-col>
               <v-col cols="8">
                 <v-text-field
@@ -85,12 +86,13 @@
               color="black"
               v-bind="attrs"
               v-on="on"
-              class="mt-2"
+              class="mt-3"
+              large
             >
               mdi-pickaxe
             </v-icon>
-            <p class="subheading font-weight-bold black--text"> 
-              Minting conditions 
+            <p class="text-h6 font-weight-regular black--text"> 
+              Minting Conditions 
             </p>
             <v-row>
                 <v-select

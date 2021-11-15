@@ -3,10 +3,11 @@
     <v-row class="text-center">
         <v-card
           elevation="15"
-          style="max-width:350px; border-radius: 20px;
-           padding: 1.5rem;  border: 1px solid; color: white; font-weight: 500;
+          style="max-width:350px;
+           padding: 1.5rem; color: white; font-weight: 500;
            opacity: 0.95;"
           class="pa-10 mt-15"
+          shaped
         >
           
           <span class="text-h3 font-weight-light black--text">
@@ -38,12 +39,13 @@
                 :key="nft.id"
                 class="mx-primary"
                 elevation="5"
-                style="margin: 10px ;margin-top:20px; max-width:200px; border-radius: 20px;
-                padding: 1.5rem;  border: 1px solid; color: white; font-weight: 500;
+                style="margin: 10px ;margin-top:20px; max-width:200px;
+                padding: 1.5rem; color: white; font-weight: 500;
                 opacity: 0.95;"
                 color="background"
                 align="center"
                 justify='center'
+                shaped                
               >
               <v-spacer />
                 <v-chip
