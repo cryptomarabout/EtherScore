@@ -342,7 +342,7 @@ async def badges(request: Request):
     try:
         # get the address
         #wallet_address = str(content["wallet_address"])
-        wallet_address = "0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1"
+        wallet_address = "0xd465be4e63bd09392bac51fcf04aa13412b552d0"
     except:
         return "error parsing POST request"
     defs = badges_definitions.copy()

@@ -109,25 +109,31 @@
         },
         {
             "id": 1,
-            "name": "Ze Whale",
-            "type": "UniswapMaxSwapAmount",
-            "description": "Ze Whale is swimming in the DeFi ecosystem",
+            "name": "Ze Borrower",
+            "type": "AaveNeverLiquidated",
+            "description": "Ze Borrower does not fear margin calls",
             "bonus": "another bonus",
-            "issuer": "Uniswap",
+            "issuer": "Aave",
             "address": "0x9888888888999999999",
             "tags": [
-                "Uniswap",
-                "transaction"
+                "Aave",
+                "liquidation"
             ],
-            "image_url": "https://assets.newatlas.com/dims4/default/572b515/2147483647/strip/true/crop/1620x1080+150+0/resize/1200x800!/quality/90/?url=http%3A%2F%2Fnewatlas-brightspot.s3.amazonaws.com%2Farchive%2Fblue-whale-1.jpg",
+            "image_url": "https://www.meme-arsenal.com/memes/e2064a411ac3fa1066f90ae854a64d60.jpg",
             "conditions": [
                 {
-                    "protocol": "Uniswap",
+                    "protocol": "Aave",
                     "indexer": "The Graph",
-                    "query": "int|{swaps(first:1, orderBy: amountUSD, orderDirection: desc, where: { to: quoted_address }) {amountUSD}}",
-                    "description": "max amount swapped",
-                    "target": 10000,
+                    "description": "ETH value borrowed",
+                    "target": 0,
                     "operator": ">"
+                },
+                {
+                    "protocol": "Aave",
+                    "indexer": "The Graph",
+                    "description": "number of liquidations",
+                    "target": 0,
+                    "operator": "=="
                 }
             ]
         },
@@ -188,31 +194,25 @@
         },
         {
             "id": 4,
-            "name": "Ze Borrower",
-            "type": "AaveNeverLiquidated",
-            "description": "Ze Borrower does not fear margin calls",
+            "name": "Ze Whale",
+            "type": "UniswapMaxSwapAmount",
+            "description": "Ze Whale is swimming in the DeFi ecosystem",
             "bonus": "another bonus",
-            "issuer": "Aave",
+            "issuer": "Uniswap",
             "address": "0x9888888888999999999",
             "tags": [
-                "Aave",
-                "liquidation"
+                "Uniswap",
+                "transaction"
             ],
-            "image_url": "https://www.meme-arsenal.com/memes/e2064a411ac3fa1066f90ae854a64d60.jpg",
+            "image_url": "https://assets.newatlas.com/dims4/default/572b515/2147483647/strip/true/crop/1620x1080+150+0/resize/1200x800!/quality/90/?url=http%3A%2F%2Fnewatlas-brightspot.s3.amazonaws.com%2Farchive%2Fblue-whale-1.jpg",
             "conditions": [
                 {
-                    "protocol": "Aave",
+                    "protocol": "Uniswap",
                     "indexer": "The Graph",
-                    "description": "ETH value borrowed",
-                    "target": 0,
+                    "query": "int|{swaps(first:1, orderBy: amountUSD, orderDirection: desc, where: { to: quoted_address }) {amountUSD}}",
+                    "description": "max amount swapped",
+                    "target": 10000,
                     "operator": ">"
-                },
-                {
-                    "protocol": "Aave",
-                    "indexer": "The Graph",
-                    "description": "number of liquidations",
-                    "target": 0,
-                    "operator": "=="
                 }
             ]
         },

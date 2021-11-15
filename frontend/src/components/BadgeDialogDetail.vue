@@ -15,8 +15,8 @@
         </v-chip>
       </template>
 
-      <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
+      <v-card shaped>
+        <v-card-title class="text-h5 secondary white--text" justify="center">
           {{ nft.name }}
         </v-card-title>
 
@@ -24,8 +24,9 @@
           <v-img
             :src="nft.image_url"
             width=200px
+            height=200px
             style="padding-top: 5px"
-            class="mx-auto"
+            class="mx-auto my-5"
           />
 
           <v-spacer />
@@ -61,6 +62,7 @@
           >
             Conditions
           </v-chip>
+          <v-spacer />
           {{ nft.conditions }}
           <v-spacer />
 
@@ -68,7 +70,8 @@
             v-if="$store.state.address !== '' && nft.conditions[0].current !== undefined"
             :value="getExperienceValue(nft)"
             height="20"
-            class = "ma-1"
+            class = "mr-5 my-5"
+            color = "green"
           > 
             <span v-if="getExperienceValue(nft) !== 100"> {{ nft.conditions[0].current + " / " + nft.conditions[0].target }} </span>
             <span v-else> 100% </span>

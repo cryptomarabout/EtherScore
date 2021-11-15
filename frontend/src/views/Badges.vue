@@ -32,11 +32,12 @@
               <v-card
                 :key="nft.id"
                 class="mx-primary"
-                elevation="5"
-                style="margin: 50px ;margin-top:20px; max-width:300px;border-radius: 20px;
-                padding: 0.6rem;  border: 1px solid; color: white; font-weight: 500;
+                elevation="24"
+                style="margin: 45px ;margin-top:20px; max-width:305px;
+                padding: 0.7rem; color: white; font-weight: 500;
                 opacity: 0.95;"
                 color="background"
+                shaped
               >
               <v-spacer />
                 <v-chip
@@ -77,10 +78,11 @@
                 </v-icon>
                 <span class="text-subtitle-1 black--text"> Minting conditions: </span>
 
+                <v-spacer/>
                 <v-list-item
                   v-for="condition in nft.conditions"
                   :key="condition.description"
-                  class="ma-0 pa-0"
+                  class="mx-0 px-0"
                 >
                   <v-list-item-avatar class="mr-2">
                      <img :src="protocolsUrl[condition.protocol]">

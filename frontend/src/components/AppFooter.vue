@@ -1,16 +1,16 @@
 <template>
   <v-footer 
     color="background"
+    style="background: linear-gradient(90deg, rgba(168,144,254,1) 0%, rgba(198,143,202,1) 35%, rgba(234,141,141,1) 100%);"
     flat
     padless
     class="mt-10"
   >
     <v-col class="text-center" cols="12">
-      Copyright  &copy; {{ new Date().getFullYear() }} —
-      <img width="32px" class="px-1 mb-n1" src="../assets/etherscore_black_transparent.png">
+      <span> Copyright  &copy; {{ new Date().getFullYear() }} — </span>
+      <img width="35px" class="px-1 mb-n1" src="../assets/etherscore_black_transparent.png">
       <strong>EtherScore</strong>
-      <v-spacer/>
-      <div class="py-2 text-right">
+      <div class="pb-2 text-right">
         Powered By 
         <img width="30px" height="30px" class="mr-1" src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=010">
         <img width="30px" height="30px" class="mr-1" src="https://cryptologos.cc/logos/the-graph-grt-logo.png?v=010">

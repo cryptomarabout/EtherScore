@@ -46,12 +46,12 @@
         >
           <v-tabs-slider  class="v-tabs-slider-wrapper" style="height: 5px;"></v-tabs-slider>
 
-          <v-tab href="#tab-1">
+          <v-tab href="#tab-1" style="color:grey">
             Weekly
             <v-icon>mdi-calendar-week</v-icon>
           </v-tab>
 
-          <v-tab href="#tab-2">
+          <v-tab href="#tab-2" style="color:grey">
             Monthly
             <v-icon>mdi-calendar-month</v-icon>
           </v-tab>
@@ -137,20 +137,20 @@
         {
           subtitle: 'top 10 gas consumer',
           title: 'Ze Consumers',
-          date: 'July 1st to 10th',
-          logo: 'https://freepikpsd.com/media/2019/10/mystery-box-png-Transparent-Images.png', 
+          date: 'December 1st to 10th',
+          logo: 'https://freepikpsd.com/file/2019/10/mystery-box-png-Transparent-Images.png', 
         },
         {
           subtitle: 'top 5 USDC minter',
           title: 'Ze Minters',
-          date: 'July 10th to 20th',
-          logo: 'https://freepikpsd.com/media/2019/10/mystery-box-png-Transparent-Images.png', 
+          date: 'December 10th to 20th',
+          logo: 'https://freepikpsd.com/file/2019/10/mystery-box-png-Transparent-Images.png', 
         },
         {
           subtitle: 'top 3 UNIV2-USDC-WETH',
           title: 'Ze Providers',
-          date: 'July 20th to 30th',
-          logo: 'https://freepikpsd.com/media/2019/10/mystery-box-png-Transparent-Images.png', 
+          date: 'December 20th to 30th',
+          logo: 'https://freepikpsd.com/file/2019/10/mystery-box-png-Transparent-Images.png', 
         }],
       }
     },
