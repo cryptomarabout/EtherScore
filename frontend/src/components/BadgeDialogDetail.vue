@@ -1,14 +1,17 @@
 <template>
   <div class="text-center">
-    <v-dialog v-model="dialog" width="500">
+    <v-dialog
+      v-model="dialog"
+      width="500"
+    >
       <template v-slot:activator="{ on, attrs }">
         <v-chip
           class="text-subtitle-1 font-weight-light"
-          style="overflow-y: hidden"
+          style="overflow-y: hidden;"
           v-bind="attrs"
           v-on="on"
         >
-          Details
+        Details
         </v-chip>
       </template>
 
@@ -20,13 +23,13 @@
         <v-card-text>
           <v-img
             :src="nft.image_url"
-            width="200px"
+            width=200px
             style="padding-top: 5px"
             class="mx-auto"
           />
 
           <v-spacer />
-
+          
           <v-chip
             class="text-subtitle-1 font-weight-light black"
             style="margin: 5px"
@@ -38,6 +41,7 @@
 
           <v-spacer />
 
+           
           <v-chip
             class="text-subtitle-1 font-weight-light black"
             style="margin: 5px"
@@ -48,6 +52,7 @@
           {{ nft.tags }}
           <v-spacer />
 
+          
           <v-chip
             class="text-subtitle-1 font-weight-light black"
             style="margin: 5px"
@@ -60,26 +65,28 @@
           <v-spacer />
 
           <v-progress-linear
-            v-if="
-              $store.state.address !== '' &&
-              nft.conditions[0].current !== undefined
-            "
+            v-if="$store.state.address !== '' && nft.conditions[0].current !== undefined"
             :value="getExperienceValue(nft)"
             height="20"
-            class="ma-1"
-          >
-            <span v-if="getExperienceValue(nft) !== 100">
-              {{ nft.conditions[0].current + " / " + nft.conditions[0].target }}
-            </span>
+            class = "ma-1"
+          > 
+            <span v-if="getExperienceValue(nft) !== 100"> {{ nft.conditions[0].current + " / " + nft.conditions[0].target }} </span>
             <span v-else> 100% </span>
           </v-progress-linear>
+
         </v-card-text>
 
         <v-divider></v-divider>
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="secondary" text @click="dialog = false"> Close </v-btn>
+          <v-btn
+            color="secondary"
+            text
+            @click="dialog = false"
+          >
+            Close
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -87,40 +94,39 @@
 </template>
 
 <script>
-import axios from "axios";
-export default {
-  name: "BadgeDialogDetail",
-  props: {
-    nft: Object,
-  },
-  data() {
-    return {
-      dialog: false,
-    };
-  },
-  methods: {
-    getTodos() {
-      if (this.$store.state.address !== "") {
-        const path = process.env.VUE_APP_BASE_URL + "badges";
-        axios
-          .post(path, { wallet_address: this.$store.state.address })
-          .then((res) => {
-            this.todos = res.data;
-          })
-          .catch((error) => {
-            // eslint-disable-next-line
-            console.error(error);
-          });
+import axios from 'axios'
+  export default {
+    name: 'BadgeDialogDetail',
+    props: {
+      nft: Object
+    },
+    data () {
+      return {
+        dialog: false,
       }
     },
-    getExperienceValue(nft) {
-      if (nft.conditions !== undefined) {
-        return (100 * nft.conditions[0].current) / nft.conditions[0].target;
+    methods: {
+      getTodos () {
+        if (this.$store.state.address !== '') {
+          const path = process.env.VUE_APP_BASE_URL + 'badges'
+          axios.post(path, { wallet_address: this.$store.state.address })
+            .then((res) => {
+              this.todos = res.data
+            })
+            .catch((error) => {
+              // eslint-disable-next-line
+              console.error(error);
+            })
+        }
+      },
+      getExperienceValue(nft){
+        if (nft.conditions !== undefined) {
+          return (100 * nft.conditions[0].current/nft.conditions[0].target)
+        }
+      },
+      fakeMetamaskPrompt(){
+        alert('This is a fake metamask prompt')
       }
-    },
-    fakeMetamaskPrompt() {
-      alert("This is a fake metamask prompt");
-    },
-  },
-};
+  }
+}
 </script>
