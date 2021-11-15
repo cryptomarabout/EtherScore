@@ -22,7 +22,7 @@
         to="/"
       >
         Home
-        <v-icon>mdi-home-circle</v-icon>
+        <v-icon class="px-1">mdi-home-circle</v-icon>
       </v-btn>
 
       <v-spacer></v-spacer>
@@ -33,7 +33,7 @@
         to="/badge-factory"
       >
         Badge Factory
-        <v-icon>mdi-factory</v-icon>
+        <v-icon class="pb-2 px-1">mdi-factory</v-icon>
       </v-btn>
 
       <v-spacer></v-spacer>
@@ -45,7 +45,7 @@
         to="/badges"
       >
         Badges
-        <v-icon>mdi-hexagon-slice-6</v-icon>
+        <v-icon class="px-1">mdi-hexagon-slice-6</v-icon>
       </v-btn>
 
       <v-spacer></v-spacer>
@@ -57,7 +57,7 @@
         to="/community"
       >
         Community
-        <v-icon>mdi-account-group</v-icon>
+        <v-icon class="pb-2 px-1">mdi-account-group</v-icon>
       </v-btn>
 
       <v-spacer></v-spacer>

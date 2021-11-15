@@ -1,6 +1,12 @@
 <template>
   <v-container >
     <v-row class="text-center">
+          <v-col class="pt-10" cols=12>
+          <v-spacer></v-spacer>
+          <p class="text-h4 font-weight-thin white--text pt-5">
+            Deploy badges for your community
+          </p>
+          </v-col>
         <v-card
           elevation="15"
           style="max-width:350px;

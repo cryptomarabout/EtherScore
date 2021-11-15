@@ -11,13 +11,33 @@
           <v-col class="pt-10" cols=12>
           <v-spacer></v-spacer>
           <p class="text-h4 font-weight-thin white--text pt-5">
-            Claim EtherScore badges & build your reputation
+            Claim badges & build your reputation
           </p>
           
           <v-spacer></v-spacer>
           <metamask-chip/>
-          </v-col>
+          <v-spacer></v-spacer>
 
+          <v-progress-circular
+            :size="70"
+            :width="7"
+            color="white"
+            v-if="displayLoading"
+            indeterminate
+            class="mt-10"
+          > 
+            <v-icon color="white">
+            mdi-database-search-outline
+            </v-icon>
+          </v-progress-circular>
+
+          <p 
+            v-if="displayLoading"
+            class="text-h6 font-weight-thin white--text pt-5"
+          >
+            Scanning badges, please wait
+          </p>
+          </v-col>
 
           
 
@@ -40,16 +60,36 @@
                 shaped
               >
               <v-spacer />
-                <v-chip
-                  class="text-h5 font-weight-light black mt-1 mb-4"
-                  outlined
-                >
+                <v-card-title class="black--text pa-2 py-3 font-weight-light ma-2" 
+                  style="border: 1px solid black !important; border-radius: 15px;">
                   {{ nft.name }}
+                <v-spacer />
+                  <v-chip
+                  class="text-subtitle-1 font-weight-light black pa-2"
+                  align="right"
+                  outlined
+                  color="green"
+                  justify="start"
+                  v-if="nft.id==0 && displayClaimed"
+                >
+                  Owned
                 </v-chip>
+                <v-chip
+                  class="text-subtitle-1 font-weight-light black pa-2"
+                  align="right"
+                  outlined
+                  color="red"
+                  justify="start"
+                  v-else
+                >
+                Not owned
+                </v-chip>
+                </v-card-title>
                 <v-spacer />
                 <v-avatar
-                  width=110px
-                  height=110px>
+                  width=105px
+                  height=105px
+                  class="mt-2">
                 <v-img
                   :src="nft.image_url"
                   width=110px
@@ -62,7 +102,7 @@
                   <p 
                     align="center"
                     justify="center"
-                    class="black--text mt-3 font-italic" 
+                    class="black--text mt-3 font-italic font-weight-regular px-7" 
                   > 
                     {{ nft.description }}
                   </p>
@@ -104,6 +144,7 @@
                       :value="getExperienceValue(condition)"
                       v-if="display"
                       height="20"
+                      rounded
                     > 
                       <span v-if="getExperienceValue(condition) < 100 && condition.target !== 0"> 
                         {{ "You: " + Math.round(condition.current) + " / " + condition.target }} 
@@ -164,24 +205,7 @@
                 <v-spacer></v-spacer>
                 <v-card-actions class="my-auto">
                 <badge-dialog-detail :nft="nft" class="rounded-xl"/>     
-                <v-chip
-                  class="text-subtitle-1 font-weight-light black pa-2 mx-auto"
-                  outlined
-                  color="green"
-                  justify="start"
-                  v-if="nft.id==0 && displayClaimed"
-                >
-                  Owned
-                </v-chip>
-                <v-chip
-                  class="text-subtitle-1 font-weight-light black pa-2 mx-auto"
-                  outlined
-                  color="red"
-                  justify="start"
-                  v-else
-                >
-                Not owned
-                </v-chip>
+                <v-spacer/>
                 <!-- <v-btn
                   color="secondary"
                   class="rounded-xl"
@@ -231,6 +255,7 @@ import json from '../BadgeTokenFactory.json'
         todos: [],
         display: false,
         displayClaimed:false,
+        displayLoading:false,
         myJson: json,
         oracleReturn: [],
         protocolsUrl: { 
@@ -251,13 +276,16 @@ import json from '../BadgeTokenFactory.json'
       async address() {
       await this.getTodos()
       this.display = true
+      this.displayLoading=false
     }},
     methods: {
       getTodos () {
+        this.displayLoading=true
         const path = process.env.VUE_APP_BASE_URL + 'badges'
         axios.post(path, { wallet_address: String(this.address) })
           .then((res) => {
             this.todos = res.data
+            this.displayLoading=false
           })
           .catch((error) => {
             // eslint-disable-next-line
