@@ -1,28 +1,31 @@
 <template>
-    <v-row class="text-center" justify="center">
-  <v-card
-    elevation="15"
-    style="max-width:700px; max-height: 1000px;
-    padding: 1.5rem; color: white; font-weight: 500;
-    opacity: 0.95;"
-    class="pa-10 mt-15"
-    shaped
-  >
+  <v-row class="text-center" justify="center">
+    <v-card
+      elevation="15"
+      style="max-width:500px; max-height: 1000px;
+      padding: 1.5rem; color: white; font-weight: 500;
+      opacity: 0.95;"
+      class="pa-10 mt-15"
+      shaped
+    >
 
     <v-row>
-      <span class="text-h4 font-weight-light black--text">
-        Badge Factory 
+      <span class="text-h6 font-weight-light black--text">
+        How to create a badge:
       </span>
     </v-row>
       <br/>
       <p class="text-subtitle-1 font-weight-thin black--text" align="left">
-        No-code NFT badge issuing
+        1- Publish Badge avatar on IPFS/Filecoin:
+      <v-icon
+      large
+        color="green"
+        v-if="isImgUploaded"
+      >
+        mdi-check
+      </v-icon>
       </p>
       <br/>
-      <img height="42px" width="42px" :src="protocolsUrl['Ethereum']" />
-      <p class="text-h6 font-weight-regular black--text">
-        ERC-721 Standard
-      </p>
         <template>
           <v-form
             ref="form"
@@ -31,10 +34,91 @@
           >
 
             <v-row>
-              <v-col cols="4">
-                <v-subheader class="text-subtitle-1">Badge Name</v-subheader>
+              <v-file-input
+                v-model="files"
+                accept="image/*"
+                label="Badge Avatar"
+                @change="updateAvatar()"
+                prepend-icon="mdi-camera"
+                truncate-length="10"
+              > </v-file-input>
+              <v-spacer/>
+              <v-avatar
+                width=125px
+                height=125px
+                class="mr-2">
+              <v-img
+                :src="imageUploaded"
+                width=130px
+                height=130px
+              />
+              </v-avatar>
+            </v-row>
+              <v-btn
+                color="secondary"
+                @click="getTodos()"
+                style="font-size: 10px"
+                class="pa-3 mb-2"
+                :loading="this.loading"
+              >
+                Publish Avatar
+              </v-btn>
+              
+              <v-spacer/>
+            <v-row>
+              <v-col cols="12">
+              <v-avatar v-if="isImgUploaded" size="25px" class="ml-2">
+                <img class="mx-2" height="25px" width="25px" :src="protocolsUrl['IPFS']" />
+              </v-avatar>
+              <v-avatar v-if="isImgUploaded" size="25px" class="ma-2">
+                <img class="mx-2" height="25px" width="25px" :src="protocolsUrl['Filecoin']" />
+              </v-avatar>
+            <v-chip outlined class="pa-3" v-if="isImgUploaded">
+              Avatar CID : {{ this.ipfsCid.substring(0, 12) +'...' }}
+              <v-tooltip
+                v-if="this.ipfsCid !== ''"
+                bottom
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-icon
+                    color="grey"
+                    v-bind="attrs"
+                    v-on="on"
+                    v-on:click="copyCid"
+                    class="ml-3"
+                  >
+                    mdi-content-copy
+                  </v-icon>
+                </template>
+                <span>{{ hintCopyCid }}</span>
+                </v-tooltip>
+               <v-tooltip
+                v-if="this.ipfsCid !== ''"
+                bottom
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-icon
+                    color="grey"
+                    v-bind="attrs"
+                    v-on="on"
+                    v-on:click="newTabFunction"
+                    class="ml-10"
+                  >
+                    mdi-open-in-new
+                  </v-icon>
+                </template>
+                <span> Check Image on dweb</span>
+                </v-tooltip>
+            </v-chip>
               </v-col>
-              <v-col cols="8">
+            </v-row>
+
+            <p class="text-subtitle-1 font-weight-thin black--text mt-2" align="left">
+              2- Publish NFT metadata on IPFS/Filecoin:
+            </p>            
+
+            <v-row>
+              <v-col cols="12">
                 <v-text-field
                   v-model="name"
                   :rules="nameRules"
@@ -49,10 +133,7 @@
             </v-row>
 
             <v-row>
-              <v-col cols="4">
-                <v-subheader class="text-subtitle-1">Description</v-subheader>
-              </v-col>
-              <v-col cols="8">
+              <v-col cols="12">
                   <v-textarea
                     label="Description"
                     auto-grow
@@ -60,25 +141,20 @@
                     rows="3"
                     row-height="25"
                     shaped
-                    class="mb-n12"
                     :hint="hintDescription"
                   ></v-textarea>
-              </v-col>
-            </v-row>
+                  <v-spacer/>
 
-            <v-row>
-              <v-col cols="4">
-                <v-subheader class="text-subtitle-1">IPFS URI</v-subheader>
-              </v-col>
-              <v-col cols="8">
-                <v-text-field
-                  v-model="ipfsURI"
-                  label="Ipfs URI"
-                  required
-                  outlined
-                  shaped
-                  class="mb-n6"
-                ></v-text-field>
+                  <!-- <v-btn
+                    color="secondary"
+                    @click="getTodosNFT"
+                    style="font-size: 10px"
+                    class="pa-3 mb-2"
+                    :loading="this.loading"
+                  >
+                    Publish Metadata
+                  </v-btn> -->
+                  <v-spacer/>
               </v-col>
             </v-row>
 
@@ -103,9 +179,9 @@
                   required
                   outlined
                   shaped
-                  class="mt-5"
+                  class="mt-5 mx-auto"
                   dense
-                  style="max-width:300px;"
+                  style="max-width:200px;"
                   :hint="hintProtocol"
                 >
                   <template slot="selection" slot-scope="data">
@@ -127,7 +203,6 @@
                   </v-list-tile-content>
                 </template>
                 </v-select>
-                <v-spacer/>
                 <v-select
                   v-model="indexer"
                   :items="indexers"
@@ -136,9 +211,9 @@
                   required
                   outlined
                   shaped
-                  class="mt-5"
+                  class="mt-5 mx-auto"
                   dense
-                  style="max-width:300px;"
+                  style="max-width:200px;"
                   :hint="hintIndexer"
                 >
                   <template slot="selection" slot-scope="data">
@@ -160,9 +235,7 @@
                   </v-list-tile-content>
                 </template>
                 </v-select>
-            </v-row>
 
-            <v-row>
               <v-select
                 v-model="metric"
                 :items="metrics"
@@ -173,9 +246,10 @@
                 shaped
                 dense
                 style="max-width:200px;"
+                class="ml-2"
                 :hint="hintMetric"
               ></v-select>
-                <v-spacer/>
+              <v-spacer/>
               <v-select
                 v-model="operator"
                 :items="operators"
@@ -185,7 +259,8 @@
                 outlined
                 shaped
                 dense
-                style="max-width:150px;"
+                class="ml-2"
+                style="max-width:200px;"
                 :hint="hintOperator"
               > 
               </v-select>
@@ -199,20 +274,22 @@
                 shaped
                 dense
                 style="max-width:100px;"
+                class="mx-auto"
                 :hint="hintValue"
-              ></v-text-field>
-              <v-spacer/>
+              ></v-text-field>  
+              <v-spacer/>   
               <v-btn
-                class="ma-3"
                 dark
                 color="indigo"
                 @click="updateConditions"
+                style="font-size: 10px"
+                class="pa-3 mr-3"
               >
               <v-icon dark>
                 mdi-plus
               </v-icon>
               Add condition
-            </v-btn>            
+            </v-btn>       
             </v-row>
             <div class="green--text ma-1" v-if="showConditions" align="left">
               The badge will be claimable to users of : <br/>
@@ -228,11 +305,14 @@
               color="indigo"
             ></v-switch>
 
+
+
             <v-btn
               :disabled="!valid"
-              color="success"
-              class="mr-4"
-              @click="validate"
+              color="secondary"
+              @click="getTodosNFT"
+              style="font-size: 10px"
+              class="pa-3 mb-5"
             >
               Deploy Badge Model
             </v-btn>
@@ -244,6 +324,8 @@
 </template>
 
 <script>
+
+ import axios from 'axios'
 
   export default {
     name: 'BadgeFactory',
@@ -258,6 +340,11 @@
       operator: '',
       ipfsURI: '',
       conditions: [],
+      files: [],
+      imageUploaded: null,
+      ipfsCid: '',
+      isImgUploaded: false,
+      loading: false,
       nameRules: [
         v => !!v || 'Badge Name is required',
         v => (v && v.length <= 10) || 'Badge Name must be less than 10 characters',
@@ -298,6 +385,7 @@
       hintMetric: "The metric concerned by the condition",
       hintOperator: "The operator such as equal, greater/less than",
       hintValue: "The number ....",
+      hintCopyCid: 'Copy CID',
       showConditions: false,
       protocolsUrl: { 
         "Compound" : "https://cryptologos.cc/logos/compound-comp-logo.png?v=012",
@@ -306,7 +394,9 @@
         "Maker": "https://cryptologos.cc/logos/maker-mkr-logo.png?v=012",
         "Ethereum": "https://cryptologos.cc/logos/ethereum-eth-logo.png?v=010",
         "Covalent": "https://s3-us-west-1.amazonaws.com/compliance-ico-af-us-west-1/production/token_profiles/logos/original/e95/9bd/80-/e959bd80-e08c-4083-a467-a3c18af86913-1618465679-a07840bd3fb5bd1bfd842bf425f7a6a9f83dbab0.png",
-        "The Graph Protocol":"https://cryptologos.cc/logos/the-graph-grt-logo.png?v=010"
+        "The Graph Protocol":"https://cryptologos.cc/logos/the-graph-grt-logo.svg?v=010",
+        "IPFS": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Ipfs-logo-1024-ice-text.png/600px-Ipfs-logo-1024-ice-text.png",
+        "Filecoin": "https://cryptologos.cc/logos/filecoin-fil-logo.svg?v=014"
         }
     }),
 
@@ -319,7 +409,54 @@
           this.showConditions = true
           this.conditions.push([this.protocol, this.metric, this.operator,this.value])
         }
-      }
+      },
+      getTodosNFT () {
+        const path = 'https://api.nft.storage/upload'
+        const token ='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDM1RDM5YWQ4YTczNWE2OTIwNzMwZkRiNzRDNDNmMDc3NkUyZjBiQzQiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTYzNzc3OTU5MzM1NiwibmFtZSI6Ik5GVCBIYWNrIEVuY29kZUNsdWIifQ.YLqi4uqEccmvzME52hI1ImYdp-Fhj-iajEg4O0ltcp8'
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        axios.post(path, 
+          {
+            "description": "Friendly OpenSea Creature that enjoys long swims in the ocean.", 
+            "external_url": "https://openseacreatures.io/3", 
+            "image": "https://storage.googleapis.com/opensea-prod.appspot.com/puffs/3.png", 
+            "name": "Dave Starbelly",
+            "attributes": [], 
+          })
+          .then((res) => {
+            console.log(res.data)
+          })
+          .catch((error) => {
+            // eslint-disable-next-line
+            console.error(error);
+          })
+      },
+      getTodos () {
+        this.loading=true  
+        const path = 'https://api.nft.storage/upload'
+        const token ='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDM1RDM5YWQ4YTczNWE2OTIwNzMwZkRiNzRDNDNmMDc3NkUyZjBiQzQiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTYzNzc3OTU5MzM1NiwibmFtZSI6Ik5GVCBIYWNrIEVuY29kZUNsdWIifQ.YLqi4uqEccmvzME52hI1ImYdp-Fhj-iajEg4O0ltcp8'
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        axios.post(path, this.files)
+          .then((res) => {
+            this.ipfsCid=res.data.value.cid
+            this.isImgUploaded=true
+            this.loading=false 
+          })
+          .catch((error) => {
+            // eslint-disable-next-line
+            console.error(error);
+          })
+      },
+      async copyCid () {
+          await navigator.clipboard.writeText(this.ipfsCid)
+          this.hintCopyCid = 'Copied'
+        },
+      updateAvatar () {
+        this.imageUploaded= URL.createObjectURL(this.files)
+      },
+    newTabFunction () { 
+                  window.open( 
+              "https://bafkreidlpgmnckav76ruiikwedz7tkuyqz6g6kwoxipy55p3ab4xxs4miq.ipfs.dweb.link/", "_blank")
+    }
     },
   }
 </script>
