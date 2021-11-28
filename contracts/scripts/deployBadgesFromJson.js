@@ -19,7 +19,7 @@ module.exports = async function main(callback) {
       console.log(badge.id, badge.name, badge.description)
       await badgeDefinitionFactory.getPastEvents( 'Transfer', { fromBlock: 'latest', toBlock: 'latest' } )
       .then(function(events){
-          badgeId = events[0]["returnValues"]["tokenId"];
+          badgeId = badge.id;
       });
       console.log("createBadgeDefinition: The new BadgeDefinitionId for badge definition#" + badge.id, "is", badgeId.toString());
 

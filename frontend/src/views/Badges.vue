@@ -53,15 +53,13 @@
                 :key="nft.id"
                 class="mx-primary"
                 elevation="24"
-                style="margin: 45px ;margin-top:20px; max-width:305px;
-                padding: 0.7rem; color: white; font-weight: 500;
+                style="margin: 45px ;margin-top:20px; max-width:305px;border-radius: 20px;
+                padding: 1rem; padding-top:10px; padding-bottom:10px; border: 1px solid; color: white; font-weight: 500;
                 opacity: 0.95;"
                 color="background"
-                shaped
               >
               <v-spacer />
-                <v-card-title class="black--text pa-2 py-3 font-weight-light ma-2" 
-                  style="border: 1px solid black !important; border-radius: 15px;">
+                <v-card-title class="black--text pa-2 py-3" style="font-weight: 300;">
                   {{ nft.name }}
                 <v-spacer />
                   <v-chip
@@ -70,7 +68,7 @@
                   outlined
                   color="green"
                   justify="start"
-                  v-if="nft.id==0 && displayClaimed"
+                  v-if="nft.id==11 && displayClaimed"
                 >
                   Owned
                 </v-chip>
@@ -85,29 +83,23 @@
                 Not owned
                 </v-chip>
                 </v-card-title>
-                <v-spacer />
                 <v-avatar
-                  width=105px
-                  height=105px
-                  class="mt-2">
+                  width=100px
+                  height=100px>
                 <v-img
                   :src="nft.image_url"
-                  width=110px
-                  height=110px
+                  width=105px
+                  height=105px
                 />
                 </v-avatar>
-
-                <v-spacer />
-                <v-spacer/>
                   <p 
                     align="center"
                     justify="center"
-                    class="black--text mt-3 font-italic font-weight-regular px-7" 
+                    class="black--text mt-2 font-italic font-weight-regular px-7" 
                   > 
                     {{ nft.description }}
                   </p>
                 <v-spacer/>
-                <br/>
                 <v-icon
                   color="black"
                   v-bind="attrs"
@@ -116,8 +108,7 @@
                 >
                   mdi-pickaxe
                 </v-icon>
-                <span class="text-subtitle-1 black--text"> Minting conditions: </span>
-
+                <span class="text-subtitle-1 black--text"> Minting conditions </span>
                 <v-spacer/>
                 <v-list-item
                   v-for="condition in nft.conditions"
@@ -265,7 +256,8 @@ import json from '../BadgeTokenFactory.json'
           "Maker": "https://cryptologos.cc/logos/maker-mkr-logo.png?v=012",
           "Ethereum": "https://cryptologos.cc/logos/ethereum-eth-logo.png?v=010",
           "Covalent": "https://s3-us-west-1.amazonaws.com/compliance-ico-af-us-west-1/production/token_profiles/logos/original/e95/9bd/80-/e959bd80-e08c-4083-a467-a3c18af86913-1618465679-a07840bd3fb5bd1bfd842bf425f7a6a9f83dbab0.png",
-          "The Graph":"https://cryptologos.cc/logos/the-graph-grt-logo.png?v=010"
+          "The Graph":"https://cryptologos.cc/logos/the-graph-grt-logo.png?v=010",
+          "SuperDeFi":"https://cryptologos.cc/logos/ethereum-eth-logo.png?v=010"
           }
       }
     },
@@ -364,7 +356,7 @@ import json from '../BadgeTokenFactory.json'
           if (this.getExperienceValue(nft.conditions[condition]) !== 100) {
             return false
           }
-          if (nft.id==0 && this.displayClaimed){
+          if (nft.id==11 && this.displayClaimed){
             return false
           }
         }

@@ -1,6 +1,28 @@
 {
     "badges": [
         {
+            "id": 11,
+            "name": "Ze Beta Tester",
+            "type": "CovalentAddressUsed",
+            "description": "Ze Beta Tester was here before you",
+            "bonus": "another bonus",
+            "issuer": "Ethereum",
+            "address": "0x9888888888999999999",
+            "tags": [
+                "Ethereum",
+                "tokens"
+            ],
+            "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQle_40vFeu-HzapmO9YkOlQ5aoUJ9yu5w-n0fPYLXilaCSjIKUvrRIZ6fNtU22kMRGS0&usqp=CAU",
+            "conditions": [
+                {
+                    "protocol": "SuperDeFi",
+                    "indexer": "Covalent",
+                    "description": "txs during testnet",
+                    "target": 10,
+                    "operator": ">"
+                }
+            ]
+        },{
             "id": 7,
             "name": "Ze OG",
             "type": "CovalentAddressUsed",

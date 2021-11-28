@@ -347,7 +347,7 @@
       loading: false,
       nameRules: [
         v => !!v || 'Badge Name is required',
-        v => (v && v.length <= 10) || 'Badge Name must be less than 10 characters',
+        v => (v && v.length <= 15) || 'Badge Name must be less than 10 characters',
       ],
       select: null,
       protocols: [
@@ -378,7 +378,7 @@
         '<',
       ],
       checkbox2: true,
-      hintName: "The name of your badge (example: \"Uniswapper boy\")",
+      hintName: "The name of your badge (example: \"My Badge\")",
       hintDescription: "The description of your badge (example: \"The best badge ever\")",
       hintProtocol: "Users that interact with",
       hintIndexer: "The data source used as Oracle",

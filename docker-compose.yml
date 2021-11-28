@@ -9,6 +9,8 @@ services:
       dockerfile: Dockerfile
     environment:
       - DEBUG=True
+    volumes:
+      - './backend/app:/app'
     networks:
       - internal
     restart: always
